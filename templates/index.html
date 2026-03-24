@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Soluções</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="page">
+        <header class="hero">
+            <p class="eyebrow"></p>
+            <h1>Calculadora de soluções e padronização</h1>
+            <p class="hero-text">
+            </p>
+        </header>
+
+        <nav class="tabs" aria-label="Seções principais">
+            <button class="tab-button active" data-tab="preparo" type="button">Preparo de soluções</button>
+            <button class="tab-button" data-tab="padronizacao" type="button">Padronização</button>
+        </nav>
+
+        <section id="preparo" class="tab-panel active">
+            <div class="card">
+                <h2>Preparo de soluções</h2>
+                <p class="muted">Informe a substância, a concentração desejada e o volume final da solução.</p>
+
+                <form id="preparo-form" class="form-grid">
+                    <label>
+                        <span>Substância</span>
+                        <select name="substancia" required>
+                            {% for option in solutions %}
+                            <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Concentração desejada (mol/L)</span>
+                        <input type="number" name="concentracao" step="any" min="0" required>
+                    </label>
+
+                    <label>
+                        <span>Volume final (mL)</span>
+                        <input type="number" name="volume" step="any" min="0" required>
+                    </label>
+
+                    <button type="submit" class="primary">Calcular preparo</button>
+                </form>
+            </div>
+
+            <div id="preparo-result" class="result card hidden"></div>
+        </section>
+
+        <section id="padronizacao" class="tab-panel">
+            <div class="card">
+                <h2>Padronização</h2>
+                <p class="muted">Use os parâmetros da titulação para gerar os procedimentos dos métodos disponíveis.</p>
+
+                <form id="padronizacao-form" class="form-grid">
+                    <label>
+                        <span>Substância</span>
+                        <select name="substancia" required>
+                            {% for option in padronizacao_options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Concentração da solução titulante (mol/L)</span>
+                        <input type="number" name="concentracao" step="any" min="0" required>
+                    </label>
+
+                    <label>
+                        <span>Volume de viragem (mL)</span>
+                        <input type="number" name="volume_viragem" step="any" min="0" required>
+                    </label>
+
+                    <button type="submit" class="primary">Calcular padronização</button>
+                </form>
+            </div>
+
+            <div id="padronizacao-result" class="result card hidden"></div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

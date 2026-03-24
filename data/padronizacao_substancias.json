@@ -1,0 +1,29 @@
+[
+  {
+    "nome": "Ácido Acético",
+    "estrategia": "acido_fraco_base_secundaria"
+  },
+  {
+    "nome": "Ácido Clorídrico",
+    "estrategia": "acido_forte_carbonato",
+    "divisor_equivalencia": 2
+  },
+  {
+    "nome": "Ácido Nítrico",
+    "estrategia": "acido_forte_carbonato",
+    "divisor_equivalencia": 2
+  },
+  {
+    "nome": "Ácido Sulfúrico",
+    "estrategia": "acido_forte_carbonato",
+    "divisor_equivalencia": 1
+  },
+  {
+    "nome": "Hidróxido de Potássio",
+    "estrategia": "base_forte_biftalato"
+  },
+  {
+    "nome": "Hidróxido de Sódio",
+    "estrategia": "base_forte_biftalato"
+  }
+]

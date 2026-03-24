@@ -1,0 +1,102 @@
+[
+  {
+    "nome": "Ácido Acético",
+    "categoria": "ácido",
+    "modo_calculo": "liquido_concentrado",
+    "unidade_resultado": "mL",
+    "rotulo_resultado": "Volume a ser pipetado",
+    "massa_molar": 60.05,
+    "pureza": 0.997,
+    "densidade": 1.05,
+    "frasco_final": "frasco de vidro",
+    "tipo_substancia": "ácido"
+  },
+  {
+    "nome": "Ácido Clorídrico",
+    "categoria": "ácido",
+    "modo_calculo": "liquido_concentrado",
+    "unidade_resultado": "mL",
+    "rotulo_resultado": "Volume a ser pipetado",
+    "massa_molar": 36.46,
+    "pureza": 0.37,
+    "densidade": 1.20,
+    "frasco_final": "frasco de vidro",
+    "tipo_substancia": "ácido"
+  },
+  {
+    "nome": "Ácido Sulfúrico",
+    "categoria": "ácido",
+    "modo_calculo": "liquido_concentrado",
+    "unidade_resultado": "mL",
+    "rotulo_resultado": "Volume a ser pipetado",
+    "massa_molar": 98.08,
+    "pureza": 0.98,
+    "densidade": 1.84,
+    "frasco_final": "frasco de vidro",
+    "tipo_substancia": "ácido"
+  },
+  {
+    "nome": "Ácido Fosfórico",
+    "categoria": "ácido",
+    "modo_calculo": "liquido_concentrado",
+    "unidade_resultado": "mL",
+    "rotulo_resultado": "Volume a ser pipetado",
+    "massa_molar": 97.99,
+    "pureza": 0.85,
+    "densidade": 1.71,
+    "frasco_final": "frasco de vidro",
+    "tipo_substancia": "ácido"
+  },
+  {
+    "nome": "Hidróxido de Amônio",
+    "categoria": "base",
+    "modo_calculo": "liquido_concentrado",
+    "unidade_resultado": "mL",
+    "rotulo_resultado": "Volume a ser pipetado",
+    "massa_molar": 17.03,
+    "pureza": 0.27,
+    "densidade": 0.89,
+    "frasco_final": "frasco de plástico",
+    "tipo_substancia": "base"
+  },
+  {
+    "nome": "Hidróxido de Lítio",
+    "categoria": "base",
+    "modo_calculo": "solido",
+    "unidade_resultado": "g",
+    "rotulo_resultado": "Massa a ser pesada",
+    "massa_molar": 41.96,
+    "frasco_final": "frasco de plástico",
+    "tipo_substancia": "base"
+  },
+  {
+    "nome": "Hidróxido de Potássio",
+    "categoria": "base",
+    "modo_calculo": "solido",
+    "unidade_resultado": "g",
+    "rotulo_resultado": "Massa a ser pesada",
+    "massa_molar": 56.10,
+    "frasco_final": "frasco de plástico",
+    "tipo_substancia": "base"
+  },
+  {
+    "nome": "Hidróxido de Sódio",
+    "categoria": "base",
+    "modo_calculo": "solido",
+    "unidade_resultado": "g",
+    "rotulo_resultado": "Massa a ser pesada",
+    "massa_molar": 39.99,
+    "frasco_final": "frasco de plástico",
+    "tipo_substancia": "base"
+  },
+  {
+    "nome": "Nitrato de Prata",
+    "categoria": "sal",
+    "modo_calculo": "solido",
+    "unidade_resultado": "g",
+    "rotulo_resultado": "Massa a ser pesada",
+    "massa_molar": 169.87,
+    "frasco_final": "frasco protegido da luz",
+    "tipo_substancia": "sal"
+  }
+]
