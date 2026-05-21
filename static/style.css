@@ -110,6 +110,16 @@ body {
     align-items: end;
 }
 
+.form-grid fieldset {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
 label {
     display: flex;
     flex-direction: column;

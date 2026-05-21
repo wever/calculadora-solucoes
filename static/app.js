@@ -2,6 +2,8 @@ const preparoForm = document.getElementById('preparo-form');
 const preparoResult = document.getElementById('preparo-result');
 const padronizacaoForm = document.getElementById('padronizacao-form');
 const padronizacaoResult = document.getElementById('padronizacao-result');
+const adminForm = document.getElementById('admin-form');
+const adminResult = document.getElementById('admin-result');
 const tabButtons = document.querySelectorAll('.tab-button');
 const tabPanels = document.querySelectorAll('.tab-panel');
 
@@ -17,6 +19,30 @@ function escapeHtml(value) {
 function renderError(container, message) {
   container.classList.remove('hidden');
   container.innerHTML = `<div class="error-box">${escapeHtml(message)}</div>`;
+}
+
+function renderSuccess(container, message) {
+  container.classList.remove('hidden');
+  container.innerHTML = `<div class="success-box">${escapeHtml(message)}</div>`;
+}
+
+async function refreshSelectOptions() {
+  try {
+    const response = await fetch('/api/configuracao');
+    const data = await response.json();
+
+    const preparoSelect = document.querySelector('#preparo-form select[name="substancia"]');
+    const padronizacaoSelect = document.querySelector('#padronizacao-form select[name="substancia"]');
+
+    if (preparoSelect) {
+      preparoSelect.innerHTML = data.preparo.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('');
+    }
+    if (padronizacaoSelect) {
+      padronizacaoSelect.innerHTML = data.padronizacao.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('');
+    }
+  } catch (error) {
+    console.warn('Não foi possível atualizar as opções de substância.', error);
+  }
 }
 
 function renderWikiLink(url) {
@@ -129,6 +155,53 @@ padronizacaoForm?.addEventListener('submit', async (event) => {
   }
 });
 
+function setAdminFields() {
+  const selectedType = adminForm?.querySelector('select[name="tipo"]')?.value || 'preparo';
+  const preparoFields = document.getElementById('preparo-fields');
+  const padronizacaoFields = document.getElementById('padronizacao-fields');
+
+  if (preparoFields) {
+    preparoFields.classList.toggle('hidden', selectedType !== 'preparo');
+  }
+  if (padronizacaoFields) {
+    padronizacaoFields.classList.toggle('hidden', selectedType !== 'padronizacao');
+  }
+}
+
+adminForm?.addEventListener('change', (event) => {
+  if (event.target.name === 'tipo') {
+    setAdminFields();
+  }
+});
+
+setAdminFields();
+
+adminForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const formData = new FormData(adminForm);
+  const payload = Object.fromEntries(formData.entries());
+
+  try {
+    const response = await fetch('/api/compounds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.erro || 'Erro ao salvar o composto.');
+    }
+
+    renderSuccess(adminResult, data.mensagem || 'Composto salvo com sucesso.');
+    await refreshSelectOptions();
+    adminForm.reset();
+    setAdminFields();
+  } catch (error) {
+    renderError(adminResult, error.message || 'Erro ao salvar o composto.');
+  }
+});
+
 tabButtons.forEach((button) => {
   button.addEventListener('click', () => {
     const target = button.dataset.tab;
@@ -137,3 +210,5 @@ tabButtons.forEach((button) => {
     tabPanels.forEach((panel) => panel.classList.toggle('active', panel.id === target));
   });
 });
+
+refreshSelectOptions();
