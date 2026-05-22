@@ -18,6 +18,11 @@ Todo o crédito pela concepção original da calculadora pertence ao autor do re
 
 ## Onde adicionar novas substâncias
 
+A aplicação agora usa um banco de dados SQLite (`app.db`) para armazenar as substâncias. Os arquivos JSON em `data/` são usados apenas para a primeira carga inicial.
+
+### Adição via interface
+Há uma nova aba `Gerenciar compostos` na interface principal onde você pode cadastrar compostos de preparo e padronização diretamente no banco de dados.
+
 ### Preparo de soluções
 Edite:
 

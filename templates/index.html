@@ -18,6 +18,7 @@
         <nav class="tabs" aria-label="Seções principais">
             <button class="tab-button active" data-tab="preparo" type="button">Preparo de soluções</button>
             <button class="tab-button" data-tab="padronizacao" type="button">Padronização</button>
+            <button class="tab-button" data-tab="admin" type="button">Gerenciar compostos</button>
         </nav>
 
         <section id="preparo" class="tab-panel active">
@@ -82,6 +83,97 @@
             </div>
 
             <div id="padronizacao-result" class="result card hidden"></div>
+        </section>
+
+        <section id="admin" class="tab-panel">
+            <div class="card">
+                <h2>Gerenciar compostos</h2>
+                <p class="muted">Adicione novos compostos ao banco de dados para preparo ou padronização.</p>
+
+                <form id="admin-form" class="form-grid">
+                    <label>
+                        <span>Tipo de composto</span>
+                        <select name="tipo" required>
+                            <option value="preparo">Preparo</option>
+                            <option value="padronizacao">Padronização</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Nome</span>
+                        <input type="text" name="nome" required placeholder="Ex.: Ácido Acético">
+                    </label>
+
+                    <fieldset id="preparo-fields">
+                        <label>
+                            <span>Categoria</span>
+                            <select name="categoria">
+                                <option value="acido">Ácido</option>
+                                <option value="base">Base</option>
+                                <option value="sal">Sal</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Modo de cálculo</span>
+                            <select name="modo_calculo">
+                                <option value="liquido_concentrado">líquido concentrado</option>
+                                <option value="solido">sólido</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Unidade do resultado</span>
+                            <input type="text" name="unidade_resultado" placeholder="Ex.: mL ou g">
+                        </label>
+                        <label>
+                            <span>Rótulo do resultado</span>
+                            <select name="rotulo_resultado">
+                                <option value="Volume a ser pipetado">Volume a ser pipetado</option>
+                                <option value="Massa a ser pesada">Massa a ser pesada</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Massa molar</span>
+                            <input type="number" name="massa_molar" step="any" min="0" placeholder="Ex.: 60.05">
+                        </label>
+                        <label>
+                            <span>Pureza</span>
+                            <input type="number" name="pureza" step="any" min="0" max="1" inputmode="decimal" placeholder="Ex.: 0.997">
+                        </label>
+                        <label>
+                            <span>Densidade</span>
+                            <input type="number" name="densidade" step="any" min="0" placeholder="Ex.: 1.05">
+                        </label>
+                        <label>
+                            <span>Frasco final</span>
+                            <input type="text" name="frasco_final" placeholder="Ex.: frasco de vidro">
+                        </label>
+                        <label>
+                            <span>Tipo de substância</span>
+                            <input type="text" name="tipo_substancia" placeholder="Ex.: ácido">
+                        </label>
+                    </fieldset>
+
+                    <fieldset id="padronizacao-fields" class="hidden">
+                        <label>
+                            <span>Estratégia (Em caso de padronização)</span>
+                            <select name="estrategia">
+                                <option value="acido_fraco_base_secundaria">Ácido fraco / base secundária</option>
+                                <option value="acido_forte_carbonato">Ácido forte / carbonato</option>
+                                <option value="base_forte_biftalato">Base forte / biftalato</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Divisor de equivalência</span>
+                            <input type="number" name="divisor_equivalencia" step="any" min="0" value="1" placeholder="Ex.: 2">
+                        </label>
+                    </fieldset>
+
+                    <button type="submit" class="primary">Salvar composto</button>
+                </form>
+            </div>
+
+            <div id="admin-result" class="result card hidden"></div>
         </section>
     </div>
 

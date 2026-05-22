@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
@@ -11,6 +13,105 @@ from flask import Flask, jsonify, render_template, request
 app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
+DB_PATH = Path(os.environ.get("DB_PATH", BASE_DIR / "app.db"))
+
+
+def get_db_connection() -> sqlite3.Connection:
+    connection = sqlite3.connect(str(DB_PATH), check_same_thread=False)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def create_tables(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS preparo_config (
+            id INTEGER PRIMARY KEY,
+            nome TEXT NOT NULL UNIQUE,
+            categoria TEXT NOT NULL,
+            modo_calculo TEXT NOT NULL,
+            unidade_resultado TEXT NOT NULL,
+            rotulo_resultado TEXT NOT NULL,
+            massa_molar REAL NOT NULL,
+            pureza REAL,
+            densidade REAL,
+            frasco_final TEXT NOT NULL,
+            tipo_substancia TEXT NOT NULL
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS padronizacao_config (
+            id INTEGER PRIMARY KEY,
+            nome TEXT NOT NULL UNIQUE,
+            estrategia TEXT NOT NULL,
+            divisor_equivalencia REAL NOT NULL DEFAULT 1
+        )
+        """
+    )
+
+
+def insert_preparo_config(connection: sqlite3.Connection, raw: Dict[str, Any]) -> None:
+    massa_molar = parse_decimal(raw.get("massa_molar"))
+    pureza = parse_decimal(raw.get("pureza"))
+    densidade = parse_decimal(raw.get("densidade"))
+
+    if massa_molar is None:
+        raise ValueError("O campo 'massa_molar' é obrigatório e deve ser numérico.")
+
+    if raw.get("modo_calculo") == "liquido_concentrado":
+        if pureza is None or densidade is None:
+            raise ValueError("Os campos 'pureza' e 'densidade' são obrigatórios para compostos líquidos concentrados.")
+
+    connection.execute(
+        """
+        INSERT INTO preparo_config (
+            nome, categoria, modo_calculo, unidade_resultado, rotulo_resultado,
+            massa_molar, pureza, densidade, frasco_final, tipo_substancia
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            raw["nome"],
+            raw["categoria"],
+            raw["modo_calculo"],
+            raw["unidade_resultado"],
+            raw["rotulo_resultado"],
+            massa_molar,
+            pureza,
+            densidade,
+            raw["frasco_final"],
+            raw["tipo_substancia"],
+        ),
+    )
+
+
+def insert_padronizacao_config(connection: sqlite3.Connection, raw: Dict[str, Any]) -> None:
+    divisor = float(raw.get("divisor_equivalencia", 1.0))
+    connection.execute(
+        """
+        INSERT INTO padronizacao_config (nome, estrategia, divisor_equivalencia)
+        VALUES (?, ?, ?)
+        """,
+        (raw["nome"], raw["estrategia"], divisor),
+    )
+
+
+def load_json(filename: str) -> Any:
+    path = DATA_DIR / filename
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def parse_decimal(raw: Any) -> float | None:
+    if raw is None or raw == "":
+        return None
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    raw_text = str(raw).strip().replace(",", ".")
+    if raw_text == "":
+        return None
+    return float(raw_text)
 
 
 @dataclass(frozen=True)
@@ -34,9 +135,9 @@ class SolutionConfig:
             modo_calculo=raw["modo_calculo"],
             unidade_resultado=raw["unidade_resultado"],
             rotulo_resultado=raw["rotulo_resultado"],
-            massa_molar=float(raw["massa_molar"]),
-            pureza=float(raw["pureza"]) if raw.get("pureza") is not None else None,
-            densidade=float(raw["densidade"]) if raw.get("densidade") is not None else None,
+            massa_molar=parse_decimal(raw["massa_molar"]),
+            pureza=parse_decimal(raw.get("pureza")),
+            densidade=parse_decimal(raw.get("densidade")),
             frasco_final=raw["frasco_final"],
             tipo_substancia=raw["tipo_substancia"],
         )
@@ -57,20 +158,73 @@ class PadronizacaoConfig:
         )
 
 
-def load_json(filename: str) -> Any:
-    path = DATA_DIR / filename
-    with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+def init_db() -> None:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with get_db_connection() as connection:
+        create_tables(connection)
+        if connection.execute("SELECT 1 FROM preparo_config LIMIT 1").fetchone() is None:
+            for item in load_json("preparo_substancias.json"):
+                insert_preparo_config(connection, item)
+        if connection.execute("SELECT 1 FROM padronizacao_config LIMIT 1").fetchone() is None:
+            for item in load_json("padronizacao_substancias.json"):
+                insert_padronizacao_config(connection, item)
+        connection.commit()
 
 
-PREPARO_CONFIGS: Dict[str, SolutionConfig] = {
-    item["nome"]: SolutionConfig.from_dict(item)
-    for item in load_json("preparo_substancias.json")
-}
-PADRONIZACAO_CONFIGS: Dict[str, PadronizacaoConfig] = {
-    item["nome"]: PadronizacaoConfig.from_dict(item)
-    for item in load_json("padronizacao_substancias.json")
-}
+def load_db_configs() -> tuple[Dict[str, "SolutionConfig"], Dict[str, "PadronizacaoConfig"]]:
+    with get_db_connection() as connection:
+        preparo_rows = connection.execute("SELECT * FROM preparo_config ORDER BY nome").fetchall()
+        padronizacao_rows = connection.execute("SELECT * FROM padronizacao_config ORDER BY nome").fetchall()
+
+    return (
+        {
+            row["nome"]: SolutionConfig.from_dict({
+                "nome": row["nome"],
+                "categoria": row["categoria"],
+                "modo_calculo": row["modo_calculo"],
+                "unidade_resultado": row["unidade_resultado"],
+                "rotulo_resultado": row["rotulo_resultado"],
+                "massa_molar": row["massa_molar"],
+                "pureza": row["pureza"],
+                "densidade": row["densidade"],
+                "frasco_final": row["frasco_final"],
+                "tipo_substancia": row["tipo_substancia"],
+            })
+            for row in preparo_rows
+        },
+        {
+            row["nome"]: PadronizacaoConfig.from_dict({
+                "nome": row["nome"],
+                "estrategia": row["estrategia"],
+                "divisor_equivalencia": row["divisor_equivalencia"],
+            })
+            for row in padronizacao_rows
+        },
+    )
+
+
+def add_preparo_config(raw: Dict[str, Any]) -> None:
+    with get_db_connection() as connection:
+        create_tables(connection)
+        insert_preparo_config(connection, raw)
+        connection.commit()
+
+    global PREPARO_CONFIGS, PADRONIZACAO_CONFIGS
+    PREPARO_CONFIGS, PADRONIZACAO_CONFIGS = load_db_configs()
+
+
+def add_padronizacao_config(raw: Dict[str, Any]) -> None:
+    with get_db_connection() as connection:
+        create_tables(connection)
+        insert_padronizacao_config(connection, raw)
+        connection.commit()
+
+    global PREPARO_CONFIGS, PADRONIZACAO_CONFIGS
+    PREPARO_CONFIGS, PADRONIZACAO_CONFIGS = load_db_configs()
+
+
+init_db()
+PREPARO_CONFIGS, PADRONIZACAO_CONFIGS = load_db_configs()
 
 
 def fmt(value: float, ndigits: int = 4) -> str:
@@ -338,6 +492,28 @@ def api_padronizacao():
         concentration = parse_positive_float("concentracao", payload)
         volume = parse_positive_float("volume_viragem", payload)
         return jsonify({"ok": True, **calculate_padronizacao(substancia, concentration, volume)})
+    except ValueError as exc:
+        return jsonify({"ok": False, "erro": str(exc)}), 400
+
+
+@app.route("/api/compounds", methods=["POST"])
+def api_compounds():
+    try:
+        payload = request.get_json(force=True)
+        tipo = payload.get("tipo", "").lower()
+
+        if tipo == "preparo":
+            add_preparo_config(payload)
+            message = f"Composto de preparo '{payload.get('nome')}' adicionado com sucesso."
+        elif tipo == "padronizacao":
+            add_padronizacao_config(payload)
+            message = f"Composto de padronização '{payload.get('nome')}' adicionado com sucesso."
+        else:
+            raise ValueError("Tipo de composto inválido. Use 'preparo' ou 'padronizacao'.")
+
+        return jsonify({"ok": True, "mensagem": message})
+    except sqlite3.IntegrityError:
+        return jsonify({"ok": False, "erro": "Já existe um composto com este nome."}), 400
     except ValueError as exc:
         return jsonify({"ok": False, "erro": str(exc)}), 400
 
